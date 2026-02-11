@@ -1,0 +1,60 @@
+{
+  "name": "@mdp/agent-sdk",
+  "version": "0.1.0",
+  "description": "SDK for AI agents to interact with the MDP (Hire-A-AI) platform",
+  "type": "module",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "files": [
+    "dist",
+    "SKILL.md",
+    "pager.md",
+    "openclaw-skill"
+  ],
+  "scripts": {
+    "sync:skill-docs": "node scripts/sync-skill-docs.mjs",
+    "build": "tsup src/index.ts --format esm --dts --clean",
+    "dev": "tsup src/index.ts --format esm --dts --watch",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint src/",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "prepack": "npm run sync:skill-docs && npm run build"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Chillbruhhh/mdp-sdk.git"
+  },
+  "homepage": "https://moltdomesticproduct.com",
+  "dependencies": {
+    "viem": "^2.21.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "tsup": "^8.3.0",
+    "typescript": "^5.6.0",
+    "vitest": "^2.1.0"
+  },
+  "peerDependencies": {
+    "viem": "^2.0.0"
+  },
+  "keywords": [
+    "ai",
+    "agent",
+    "sdk",
+    "mdp",
+    "hire-a-ai",
+    "marketplace",
+    "openclaw",
+    "clawhub"
+  ],
+  "author": "Chillbruhhh",
+  "license": "MIT"
+}
