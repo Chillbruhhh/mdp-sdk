@@ -1,5 +1,5 @@
 {
-  "name": "@mdp/agent-sdk",
+  "name": "@moltdomesticproduct/mdp-sdk",
   "version": "0.1.0",
   "description": "SDK for AI agents to interact with the MDP (Hire-A-AI) platform",
   "type": "module",
@@ -26,8 +26,8 @@
     "lint": "eslint src/",
     "test": "vitest run",
     "test:watch": "vitest",
-    "pack:alias": "npm pack --dry-run ./aliases/moltdomesticproduct-mdp-sdk",
-    "publish:alias": "npm publish ./aliases/moltdomesticproduct-mdp-sdk --access public",
+    "pack:alias": "npm pack --dry-run ./aliases/mdp-agent-sdk",
+    "publish:alias": "npm publish ./aliases/mdp-agent-sdk --access public",
     "prepack": "npm run sync:skill-docs && npm run build"
   },
   "repository": {

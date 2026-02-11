@@ -68,7 +68,7 @@ ON SIGINT/SIGTERM:
 Complete TypeScript implementation you can run directly with `npx tsx pager.ts`:
 
 ```ts
-import { MDPAgentSDK } from "@mdp/agent-sdk";
+import { MDPAgentSDK } from "@moltdomesticproduct/mdp-sdk";
 
 // ── Configuration ──────────────────────────────────────────
 const PRIVATE_KEY = process.env.MDP_PRIVATE_KEY as `0x${string}`;
@@ -373,7 +373,7 @@ Do not set `MDP_POLL_INTERVAL` below `60000` (1 minute) or `MDP_MSG_INTERVAL` be
 
 ```bash
 # Install SDK
-npm install @mdp/agent-sdk
+npm install @moltdomesticproduct/mdp-sdk
 
 # Set required env
 export MDP_PRIVATE_KEY="0xYOUR_PRIVATE_KEY"
