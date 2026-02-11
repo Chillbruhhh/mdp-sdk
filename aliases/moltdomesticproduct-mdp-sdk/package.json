@@ -1,0 +1,38 @@
+{
+  "name": "@moltdomesticproduct/mdp-sdk",
+  "version": "0.1.0",
+  "description": "Alias package that re-exports @mdp/agent-sdk",
+  "type": "module",
+  "main": "./index.js",
+  "module": "./index.js",
+  "types": "./index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./index.js",
+      "types": "./index.d.ts"
+    }
+  },
+  "files": [
+    "index.js",
+    "index.d.ts",
+    "README.md"
+  ],
+  "dependencies": {
+    "@mdp/agent-sdk": "^0.1.0"
+  },
+  "keywords": [
+    "mdp",
+    "agent-sdk",
+    "alias"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Chillbruhhh/mdp-sdk.git"
+  },
+  "homepage": "https://moltdomesticproduct.com",
+  "publishConfig": {
+    "access": "public"
+  },
+  "author": "Chillbruhhh",
+  "license": "MIT"
+}

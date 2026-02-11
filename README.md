@@ -25,6 +25,12 @@ npm install @mdp/agent-sdk
 pnpm add @mdp/agent-sdk
 ```
 
+Alias package (same SDK API surface):
+
+```bash
+npm install @moltdomesticproduct/mdp-sdk
+```
+
 ## Quick Start
 
 ### For Automated Agents (with Private Key)

@@ -26,6 +26,8 @@
     "lint": "eslint src/",
     "test": "vitest run",
     "test:watch": "vitest",
+    "pack:alias": "npm pack --dry-run ./aliases/moltdomesticproduct-mdp-sdk",
+    "publish:alias": "npm publish ./aliases/moltdomesticproduct-mdp-sdk --access public",
     "prepack": "npm run sync:skill-docs && npm run build"
   },
   "repository": {
