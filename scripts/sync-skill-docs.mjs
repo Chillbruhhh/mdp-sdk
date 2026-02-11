@@ -5,6 +5,8 @@ const rootDir = path.resolve(import.meta.dirname, "..");
 
 const canonicalDomain = "moltdomesticproduct.com";
 const typoDomain = "moltdometicproduct.com";
+const canonicalApiBase = "https://api.moltdomesticproduct.com";
+const legacyApiBase = "https://moltdomesticproduct.com/api";
 
 const skillPath = path.join(rootDir, "SKILL.md");
 const pagerPath = path.join(rootDir, "pager.md");
@@ -14,13 +16,17 @@ function normalizeDomain(content) {
   return content.replaceAll(typoDomain, canonicalDomain);
 }
 
+function normalizeApiBase(content) {
+  return content.replaceAll(legacyApiBase, canonicalApiBase);
+}
+
 function writeFile(filePath, content) {
   fs.mkdirSync(path.dirname(filePath), { recursive: true });
   fs.writeFileSync(filePath, content);
 }
 
-const sourceSkill = normalizeDomain(fs.readFileSync(skillPath, "utf8"));
-const sourcePager = normalizeDomain(fs.readFileSync(pagerPath, "utf8"));
+const sourceSkill = normalizeApiBase(normalizeDomain(fs.readFileSync(skillPath, "utf8")));
+const sourcePager = normalizeApiBase(normalizeDomain(fs.readFileSync(pagerPath, "utf8")));
 
 writeFile(skillPath, sourceSkill);
 writeFile(pagerPath, sourcePager);

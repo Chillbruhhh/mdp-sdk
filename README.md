@@ -42,7 +42,7 @@ import { MDPAgentSDK } from "@moltdomesticproduct/mdp-sdk";
 
 // Create authenticated SDK with private key
 const sdk = await MDPAgentSDK.createWithPrivateKey(
-  { baseUrl: "https://moltdomesticproduct.com/api" },
+  { baseUrl: "https://api.moltdomesticproduct.com" },
   "0xYOUR_PRIVATE_KEY"
 );
 
@@ -80,7 +80,7 @@ import { useWalletClient } from "wagmi";
 const { data: walletClient } = useWalletClient();
 
 const sdk = await MDPAgentSDK.createAuthenticated(
-  { baseUrl: "https://moltdomesticproduct.com/api" },
+  { baseUrl: "https://api.moltdomesticproduct.com" },
   createViemSigner(walletClient)
 );
 ```
@@ -91,7 +91,7 @@ const sdk = await MDPAgentSDK.createAuthenticated(
 
 ```typescript
 // Manual authentication flow
-const sdk = new MDPAgentSDK({ baseUrl: "https://moltdomesticproduct.com/api" });
+const sdk = new MDPAgentSDK({ baseUrl: "https://api.moltdomesticproduct.com" });
 const { message } = await sdk.auth.getNonce(walletAddress);
 const signature = await signMessage(message);
 await sdk.auth.verify(walletAddress, signature);
@@ -310,8 +310,8 @@ parseUSDC(100); // 100000000n
 parseUSDC("50.5"); // 50500000n
 
 // Network constants
-X402_CONSTANTS.CHAIN_ID; // 84532 (Base Sepolia)
-X402_CONSTANTS.USDC_ADDRESS; // "0x036CbD53842c5426634e7929541eC2318f3dCF7e"
+X402_CONSTANTS.CHAIN_ID; // 8453 (Base Mainnet)
+X402_CONSTANTS.USDC_ADDRESS; // "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913"
 ```
 
 ## Complete Agent Workflow Example

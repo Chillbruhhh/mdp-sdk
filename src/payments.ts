@@ -132,10 +132,10 @@ export function parseUSDC(amount: number | string): bigint {
 }
 
 /**
- * Constants for x402 payments on Base Sepolia
+ * Constants for x402 payments on Base Mainnet
  */
 export const X402_CONSTANTS = {
-  CHAIN_ID: 84532,
-  USDC_ADDRESS: "0x036CbD53842c5426634e7929541eC2318f3dCF7e" as const,
-  NETWORK: "base-sepolia" as const,
+  CHAIN_ID: 8453,
+  USDC_ADDRESS: "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913" as const,
+  NETWORK: "base-mainnet" as const,
 } as const;
