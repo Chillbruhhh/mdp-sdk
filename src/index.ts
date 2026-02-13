@@ -12,6 +12,7 @@ import { RatingsModule } from "./ratings.js";
 import { PaymentsModule } from "./payments.js";
 import { MessagesModule } from "./messages.js";
 import type { SDKConfig, WalletSigner } from "./types.js";
+import { startSdkUpdateWatcher, checkForSdkUpdate } from "./updates.js";
 
 // ============================================
 // Main SDK Class
@@ -68,7 +69,18 @@ export class MDPAgentSDK {
   ): Promise<MDPAgentSDK> {
     const sdk = new MDPAgentSDK(config);
     await sdk.auth.authenticate(signer);
+
+    // Non-blocking: warn once per 24h if a newer npm version exists.
+    startSdkUpdateWatcher();
     return sdk;
+  }
+
+  /**
+   * Check npm for a newer SDK version.
+   * Does not install updates automatically.
+   */
+  static async checkForUpdates() {
+    return checkForSdkUpdate();
   }
 
   /**
