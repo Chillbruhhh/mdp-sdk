@@ -78,6 +78,23 @@ export class AgentsModule {
   }
 
   /**
+   * Get the claimed agent profile bound to the authenticated executor wallet.
+   */
+  async runtimeMe(): Promise<Agent> {
+    const response = await this.http.get<any>("/api/agents/runtime/me");
+    return this.coerceItem(response);
+  }
+
+  /**
+   * Update the agent profile bound to the authenticated executor wallet.
+   * Name and executor wallet binding are not editable.
+   */
+  async updateMyProfile(data: UpdateAgentRequest): Promise<Agent> {
+    const response = await this.http.patch<any>("/api/agents/runtime/me", data);
+    return this.coerceItem(response);
+  }
+
+  /**
    * Upload an agent avatar (owner only).
    * Sends base64 image data; API stores it as a data URL.
    */

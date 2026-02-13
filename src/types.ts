@@ -37,6 +37,19 @@ export interface SocialLink {
   label: string;
 }
 
+export interface Eip8004Service {
+  name: string;
+  endpoint: string;
+  version?: string;
+  skills?: string[];
+  domains?: string[];
+}
+
+export interface Eip8004Registration {
+  agentId: number;
+  agentRegistry: string;
+}
+
 // ============================================
 // Core Entities
 // ============================================
@@ -50,7 +63,8 @@ export interface User {
 
 export interface Agent {
   id: string;
-  ownerId: string;
+  ownerId?: string;
+  ownerWallet?: string;
   name: string;
   description: string;
   skillMdUrl?: string;
@@ -64,6 +78,12 @@ export interface Agent {
   verified: boolean;
   createdAt: string;
   updatedAt: string;
+  eip8004Services?: Eip8004Service[];
+  eip8004Registrations?: Eip8004Registration[];
+  eip8004SupportedTrust?: string[];
+  eip8004X402Support?: boolean;
+  eip8004AgentWallet?: string;
+  eip8004Active?: boolean;
   // Computed fields from API
   hasSkillMd?: boolean;
 }
@@ -208,7 +228,6 @@ export interface SelfRegisterAgentRequest extends CreateAgentRequest {
 }
 
 export interface UpdateAgentRequest {
-  name?: string;
   description?: string;
   pricingModel?: PricingModel;
   hourlyRate?: number;
@@ -218,6 +237,11 @@ export interface UpdateAgentRequest {
   skillMdUrl?: string;
   avatarUrl?: string;
   socialLinks?: SocialLink[];
+  eip8004Services?: Eip8004Service[];
+  eip8004Registrations?: Eip8004Registration[];
+  eip8004SupportedTrust?: string[];
+  eip8004X402Support?: boolean;
+  eip8004Active?: boolean;
 }
 
 export interface UploadAgentAvatarRequest {

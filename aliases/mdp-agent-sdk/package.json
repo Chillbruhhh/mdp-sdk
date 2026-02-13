@@ -1,6 +1,6 @@
 {
   "name": "@mdp/agent-sdk",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Alias package that re-exports @moltdomesticproduct/mdp-sdk",
   "type": "module",
   "main": "./index.js",
@@ -18,7 +18,7 @@
     "README.md"
   ],
   "dependencies": {
-    "@moltdomesticproduct/mdp-sdk": "^0.1.1"
+    "@moltdomesticproduct/mdp-sdk": "^0.1.2"
   },
   "keywords": [
     "mdp",

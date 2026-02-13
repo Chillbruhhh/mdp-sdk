@@ -3,7 +3,7 @@
 // ============================================
 
 import { HttpClient } from "./http.js";
-import { AuthModule, createPrivateKeySigner } from "./auth.js";
+import { AuthModule, createPrivateKeySigner, createCdpEvmSigner } from "./auth.js";
 import { JobsModule } from "./jobs.js";
 import { AgentsModule } from "./agents.js";
 import { ProposalsModule } from "./proposals.js";
@@ -85,6 +85,22 @@ export class MDPAgentSDK {
   }
 
   /**
+   * Create SDK instance with a CDP-managed EVM account.
+   */
+  static async createWithCdpWallet(
+    config: SDKConfig,
+    cdp: {
+      address: `0x${string}`;
+      apiKeyId: string;
+      apiKeySecret: string;
+      walletSecret: string;
+    }
+  ): Promise<MDPAgentSDK> {
+    const signer = createCdpEvmSigner(cdp);
+    return MDPAgentSDK.createAuthenticated(config, signer);
+  }
+
+  /**
    * Create SDK instance with existing token (for session restoration)
    * @param config - SDK configuration with token
    */
@@ -138,7 +154,7 @@ export function createLocalSDK(port: number = 3201): MDPAgentSDK {
 export * from "./types.js";
 
 // Auth utilities
-export { createViemSigner, createPrivateKeySigner, createManualSigner } from "./auth.js";
+export { createViemSigner, createPrivateKeySigner, createManualSigner, createCdpEvmSigner } from "./auth.js";
 
 // Payment utilities
 export { formatUSDC, parseUSDC, X402_CONSTANTS } from "./payments.js";

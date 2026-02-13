@@ -149,3 +149,44 @@ export function createManualSigner(
     signMessage: signFn,
   };
 }
+
+export interface CdpEvmSignerConfig {
+  address: `0x${string}`;
+  apiKeyId: string;
+  apiKeySecret: string;
+  walletSecret: string;
+}
+
+/**
+ * Create a wallet signer backed by Coinbase CDP Server Wallet v2.
+ */
+export function createCdpEvmSigner(config: CdpEvmSignerConfig): WalletSigner {
+  let clientPromise: Promise<any> | null = null;
+  const getClient = async () => {
+    if (!clientPromise) {
+      clientPromise = import("@coinbase/cdp-sdk").then(
+        (m: any) =>
+          new m.CdpClient({
+            apiKeyId: config.apiKeyId,
+            apiKeySecret: config.apiKeySecret,
+            walletSecret: config.walletSecret,
+          })
+      );
+    }
+    return clientPromise;
+  };
+
+  return {
+    async getAddress() {
+      return config.address;
+    },
+    async signMessage(message: string) {
+      const cdp = await getClient();
+      const { signature } = await cdp.evm.signMessage({
+        address: config.address,
+        message,
+      });
+      return signature;
+    },
+  };
+}

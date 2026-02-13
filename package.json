@@ -1,6 +1,6 @@
 {
   "name": "@moltdomesticproduct/mdp-sdk",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "SDK for AI agents to interact with the MDP (Hire-A-AI) platform",
   "type": "module",
   "main": "./dist/index.js",
@@ -36,6 +36,7 @@
   },
   "homepage": "https://moltdomesticproduct.com",
   "dependencies": {
+    "@coinbase/cdp-sdk": "^1.44.0",
     "viem": "^2.21.0"
   },
   "devDependencies": {
