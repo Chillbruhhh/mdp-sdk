@@ -184,7 +184,7 @@ export * from "./types.js";
 export { createViemSigner, createPrivateKeySigner, createManualSigner, createCdpEvmSigner } from "./auth.js";
 
 // Payment utilities
-export { formatUSDC, parseUSDC, X402_CONSTANTS } from "./payments.js";
+export { formatUSDC, parseUSDC, X402_CONSTANTS, EIP3009_TYPES, USDC_EIP712_DOMAIN, MDP_ESCROW_FUND_ABI } from "./payments.js";
 
 // Module classes (for advanced usage)
 export { AuthModule } from "./auth.js";

@@ -115,7 +115,10 @@ export interface Proposal {
   status: ProposalStatus;
   createdAt: string;
   updatedAt: string;
-  // Joined fields
+  // Joined fields from proposal list endpoints
+  agentName?: string;
+  agentWallet?: string;
+  agentVerified?: boolean;
   agent?: Agent;
   job?: Job;
 }
@@ -338,12 +341,17 @@ export interface PaymentIntentResponse {
     maxAmountRequired: string;
     resource: string;
     description: string;
-    mimeType: string;
+    mimeType?: string;
     payTo: string;
     maxTimeoutSeconds: number;
     asset: string;
+    extra?: PaymentRequirementExtra;
   };
   encodedRequirement: string;
+  /** All payment IDs (escrow + fee) when multiple requirements exist */
+  paymentIds?: string[];
+  /** All requirements when multiple payments are needed */
+  requirements?: PaymentIntentResponse["requirement"][];
 }
 
 export interface PaymentSettleResponse {
@@ -514,8 +522,6 @@ export interface BazaarSearchResponse {
 export interface PendingProposal extends Proposal {
   jobTitle?: string;
   jobStatus?: string;
-  agentName?: string;
-  agentWallet?: string;
 }
 
 export interface ListPendingProposalsParams {
@@ -546,6 +552,57 @@ export interface WalletSigner {
   getAddress(): Promise<string>;
   /** Sign a message and return the signature */
   signMessage(message: string): Promise<string>;
+}
+
+/**
+ * Extended signer with EIP-3009 typed-data signing for autonomous payments.
+ * Backward-compatible with WalletSigner.
+ */
+export interface PaymentSigner extends WalletSigner {
+  /** Sign EIP-712 typed data (required for EIP-3009 TransferWithAuthorization) */
+  signTypedData(params: {
+    domain: Record<string, unknown>;
+    types: Record<string, Array<{ name: string; type: string }>>;
+    primaryType: string;
+    message: Record<string, unknown>;
+  }): Promise<string>;
+
+  /** Send a raw transaction (required for contract escrow mode) */
+  sendTransaction?(params: {
+    to: string;
+    data: string;
+    value?: bigint;
+    chainId?: number;
+  }): Promise<string>;
+}
+
+// ============================================
+// Payment Flow Types
+// ============================================
+
+/** Extra metadata returned on a payment requirement when contract escrow is enabled */
+export interface PaymentRequirementExtra {
+  contractMode: boolean;
+  jobKey: string;
+  agentWallet?: string;
+  agentExecutorWallet?: string;
+  agentPayoutWallet?: string;
+}
+
+/** Options for the fundJob() high-level flow */
+export interface FundJobOptions {
+  /** Milliseconds between confirm polls (default: 5000) */
+  pollIntervalMs?: number;
+  /** Maximum milliseconds to wait for on-chain confirmation (default: 180000) */
+  timeoutMs?: number;
+}
+
+/** Result of a fundJob() call */
+export interface FundJobResult {
+  success: boolean;
+  txHash?: string;
+  paymentId: string;
+  mode: "facilitator" | "contract";
 }
 
 // ============================================

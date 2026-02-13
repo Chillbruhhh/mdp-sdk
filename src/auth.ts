@@ -6,6 +6,7 @@ import { HttpClient } from "./http.js";
 import type {
   User,
   WalletSigner,
+  PaymentSigner,
   AuthNonceResponse,
   AuthVerifyResponse,
 } from "./types.js";
@@ -98,12 +99,16 @@ export class AuthModule {
 
 /**
  * Create a wallet signer from viem's WalletClient
- * Compatible with wagmi's useWalletClient hook
+ * Compatible with wagmi's useWalletClient hook.
+ * If the walletClient supports signTypedData / sendTransaction, those
+ * capabilities are exposed on the returned PaymentSigner.
  */
 export function createViemSigner(walletClient: {
   account: { address: string };
   signMessage: (args: { message: string }) => Promise<string>;
-}): WalletSigner {
+  signTypedData?: (args: any) => Promise<string>;
+  sendTransaction?: (args: any) => Promise<string>;
+}): PaymentSigner {
   return {
     async getAddress() {
       return walletClient.account.address;
@@ -111,19 +116,61 @@ export function createViemSigner(walletClient: {
     async signMessage(message: string) {
       return walletClient.signMessage({ message });
     },
+    async signTypedData(params) {
+      if (!walletClient.signTypedData) {
+        throw new Error("walletClient does not support signTypedData");
+      }
+      return walletClient.signTypedData(params);
+    },
+    ...(walletClient.sendTransaction
+      ? {
+          async sendTransaction(params: {
+            to: string;
+            data: string;
+            value?: bigint;
+            chainId?: number;
+          }) {
+            return walletClient.sendTransaction!(params);
+          },
+        }
+      : {}),
   };
 }
 
 /**
- * Create a wallet signer from a private key (for automated agents)
- * Requires viem to be installed
+ * Create a wallet signer from a private key (for automated agents).
+ * Requires viem to be installed.
+ * Supports EIP-3009 typed-data signing and on-chain transactions.
+ *
+ * @param privateKey  Hex-encoded private key
+ * @param opts.rpcUrl RPC endpoint for sendTransaction (defaults to Base mainnet public RPC)
  */
-export async function createPrivateKeySigner(privateKey: `0x${string}`): Promise<WalletSigner> {
-  // Dynamic import to avoid requiring viem if not using this function
+export async function createPrivateKeySigner(
+  privateKey: `0x${string}`,
+  opts?: { rpcUrl?: string },
+): Promise<PaymentSigner> {
   const { privateKeyToAccount } = await import("viem/accounts");
-  
   const account = privateKeyToAccount(privateKey);
-  
+
+  // Lazily create a wallet client only when sendTransaction is first called
+  let walletClientPromise: Promise<any> | null = null;
+  const getWalletClient = () => {
+    if (!walletClientPromise) {
+      walletClientPromise = import("viem").then((v) => {
+        const chain =
+          opts?.rpcUrl?.includes("sepolia")
+            ? (v as any).baseSepolia ?? { id: 84532 }
+            : (v as any).base ?? { id: 8453 };
+        return v.createWalletClient({
+          account,
+          chain,
+          transport: v.http(opts?.rpcUrl),
+        });
+      });
+    }
+    return walletClientPromise;
+  };
+
   return {
     async getAddress() {
       return account.address;
@@ -131,22 +178,60 @@ export async function createPrivateKeySigner(privateKey: `0x${string}`): Promise
     async signMessage(message: string) {
       return account.signMessage({ message });
     },
+    async signTypedData(params) {
+      return account.signTypedData(params as any);
+    },
+    async sendTransaction(params) {
+      const client = await getWalletClient();
+      return client.sendTransaction({
+        to: params.to as `0x${string}`,
+        data: params.data as `0x${string}`,
+        value: params.value,
+        chain: client.chain,
+      });
+    },
   };
 }
 
 /**
- * Create a wallet signer with manual signing (for external wallets)
- * Useful when the signing happens outside the SDK
+ * Create a wallet signer with manual signing (for external wallets).
+ * Useful when the signing happens outside the SDK.
+ *
+ * Supply optional `signTypedDataFn` and `sendTransactionFn` to enable
+ * autonomous payment flows (fundJob).
  */
 export function createManualSigner(
   address: string,
-  signFn: (message: string) => Promise<string>
-): WalletSigner {
+  signFn: (message: string) => Promise<string>,
+  opts?: {
+    signTypedDataFn?: (params: {
+      domain: Record<string, unknown>;
+      types: Record<string, Array<{ name: string; type: string }>>;
+      primaryType: string;
+      message: Record<string, unknown>;
+    }) => Promise<string>;
+    sendTransactionFn?: (params: {
+      to: string;
+      data: string;
+      value?: bigint;
+      chainId?: number;
+    }) => Promise<string>;
+  },
+): PaymentSigner {
   return {
     async getAddress() {
       return address;
     },
     signMessage: signFn,
+    async signTypedData(params) {
+      if (!opts?.signTypedDataFn) {
+        throw new Error("signTypedData not provided to createManualSigner");
+      }
+      return opts.signTypedDataFn(params);
+    },
+    ...(opts?.sendTransactionFn
+      ? { sendTransaction: opts.sendTransactionFn }
+      : {}),
   };
 }
 
@@ -159,8 +244,9 @@ export interface CdpEvmSignerConfig {
 
 /**
  * Create a wallet signer backed by Coinbase CDP Server Wallet v2.
+ * Supports EIP-3009 typed-data signing and on-chain transactions.
  */
-export function createCdpEvmSigner(config: CdpEvmSignerConfig): WalletSigner {
+export function createCdpEvmSigner(config: CdpEvmSignerConfig): PaymentSigner {
   let clientPromise: Promise<any> | null = null;
   const getClient = async () => {
     if (!clientPromise) {
@@ -187,6 +273,26 @@ export function createCdpEvmSigner(config: CdpEvmSignerConfig): WalletSigner {
         message,
       });
       return signature;
+    },
+    async signTypedData(params) {
+      const cdp = await getClient();
+      const { signature } = await cdp.evm.signTypedData({
+        address: config.address,
+        typedData: params,
+      });
+      return signature;
+    },
+    async sendTransaction(params) {
+      const cdp = await getClient();
+      const { transactionHash } = await cdp.evm.sendTransaction({
+        address: config.address,
+        transaction: {
+          to: params.to as `0x${string}`,
+          data: params.data as `0x${string}`,
+          value: params.value ? `0x${params.value.toString(16)}` : "0x0",
+        },
+      });
+      return transactionHash;
     },
   };
 }
