@@ -12,7 +12,7 @@ export type JobStatus = "open" | "funded" | "in_progress" | "completed" | "cance
 
 export type ProposalStatus = "pending" | "accepted" | "rejected" | "withdrawn";
 
-export type PaymentStatus = "pending" | "settled" | "failed";
+export type PaymentStatus = "pending" | "settling" | "settled" | "failed";
 
 export type FlagTarget = "job" | "agent" | "proposal" | "user";
 
@@ -219,12 +219,15 @@ export interface CreateAgentRequest {
   skillMdUrl?: string;
   avatarUrl?: string;
   socialLinks?: SocialLink[];
+  eip8004Services?: Eip8004Service[];
+  eip8004Registrations?: Eip8004Registration[];
+  eip8004X402Support?: boolean;
+  eip8004AgentWallet?: string;
 }
 
 export interface SelfRegisterAgentRequest extends CreateAgentRequest {
   ownerWallet: string;
-  // Must match the authenticated wallet if provided.
-  eip8004AgentWallet?: string;
+  eip8004SupportedTrust?: string[];
 }
 
 export interface UpdateAgentRequest {
@@ -345,14 +348,27 @@ export interface PaymentIntentResponse {
 
 export interface PaymentSettleResponse {
   success: boolean;
+  status: "settling" | "settled";
+  paymentId: string;
+  txHash?: string;
+}
+
+export interface PaymentConfirmResponse {
+  success: boolean;
+  status: "settled" | "pending";
   txHash: string;
-  payment: Payment;
+  paymentId?: string;
 }
 
 export interface PaymentSummaryResponse {
-  totalSpent: number;
-  totalEarned: number;
-  pendingPayments: number;
+  settled: {
+    totalSpentUSDC: number;
+    totalEarnedUSDC: number;
+  };
+  pending: {
+    totalSpentUSDC: number;
+    totalEarnedUSDC: number;
+  };
 }
 
 export interface ListResponse<T> {
@@ -395,6 +411,117 @@ export interface ListRatingsParams {
 
 export interface ListPaymentsParams {
   jobId: string;
+}
+
+// ============================================
+// EIP-8004 Types
+// ============================================
+
+export interface Eip8004RegistrationResponse {
+  type: string;
+  name: string;
+  description: string;
+  image?: string;
+  services: Eip8004Service[];
+  x402Support: boolean;
+  active: boolean;
+  registrations: Eip8004Registration[];
+  supportedTrust?: string[];
+}
+
+export interface Eip8004Feedback {
+  jobId: string;
+  score?: number;
+  value?: number;
+  valueDecimals?: number;
+  tag1?: string;
+  tag2?: string;
+  endpoint?: string;
+  comment?: string;
+  createdAt: string;
+}
+
+export interface Eip8004FeedbackResponse {
+  feedback: Eip8004Feedback[];
+  summary: {
+    count: number;
+    summaryValue: number;
+    summaryValueDecimals: number;
+  };
+}
+
+export interface SubmitFeedbackRequest {
+  jobId: string;
+  score?: number;
+  value?: number;
+  valueDecimals?: number;
+  tag1?: string;
+  tag2?: string;
+  endpoint?: string;
+  comment?: string;
+}
+
+// ============================================
+// Escrow Types
+// ============================================
+
+export interface EscrowState {
+  usingContract: boolean;
+  escrowContract?: string;
+  rpcUrl?: string;
+  rpcFallbackUrls?: string[];
+  chainId: number;
+  jobId: string;
+  jobKey?: string;
+  escrow?: Record<string, unknown>;
+  computed?: {
+    acceptDeadlineSeconds: number;
+    autoReleaseDelaySeconds: number;
+    acceptDeadlineAt: string;
+    autoReleaseAt: string;
+    canAutoRelease: boolean;
+    canRefundExpired: boolean;
+  };
+}
+
+// ============================================
+// Dispute Types
+// ============================================
+
+export interface OpenDisputeRequest {
+  reason: string;
+  txHash?: string;
+}
+
+// ============================================
+// Bazaar Types
+// ============================================
+
+export interface BazaarSearchParams {
+  q?: string;
+  limit?: number;
+}
+
+export interface BazaarSearchResponse {
+  jobs: Job[];
+  count: number;
+}
+
+// ============================================
+// Pending Proposals Types
+// ============================================
+
+export interface PendingProposal extends Proposal {
+  jobTitle?: string;
+  jobStatus?: string;
+  agentName?: string;
+  agentWallet?: string;
+}
+
+export interface ListPendingProposalsParams {
+  status?: string;
+  limit?: number;
+  offset?: number;
 }
 
 // ============================================

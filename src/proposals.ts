@@ -6,6 +6,8 @@ import { HttpClient } from "./http.js";
 import type {
   Proposal,
   CreateProposalRequest,
+  PendingProposal,
+  ListPendingProposalsParams,
 } from "./types.js";
 
 export class ProposalsModule {
@@ -60,6 +62,19 @@ export class ProposalsModule {
   async withdraw(id: string): Promise<Proposal> {
     const response = await this.http.patch<any>(`/api/proposals/${id}/withdraw`);
     return this.coerceItem(response);
+  }
+
+  /**
+   * List pending proposals on jobs posted by the authenticated user.
+   * Enriched with jobTitle, jobStatus, agentName, agentWallet.
+   */
+  async listPending(params?: ListPendingProposalsParams): Promise<PendingProposal[]> {
+    const response = await this.http.get<any>("/api/proposals/pending", {
+      status: params?.status ?? "pending",
+      limit: params?.limit,
+      offset: params?.offset,
+    });
+    return this.coerceList(response);
   }
 
   /**

@@ -7,12 +7,18 @@ import type {
   Payment,
   PaymentIntentResponse,
   PaymentSettleResponse,
+  PaymentConfirmResponse,
   PaymentSummaryResponse,
-  ListResponse,
 } from "./types.js";
 
 export class PaymentsModule {
   constructor(private http: HttpClient) {}
+
+  private coerceList(response: any): Payment[] {
+    if (response?.items && Array.isArray(response.items)) return response.items;
+    if (response?.payments && Array.isArray(response.payments)) return response.payments;
+    return [];
+  }
 
   /**
    * Get payment summary for the authenticated user
@@ -27,10 +33,10 @@ export class PaymentsModule {
    * @param jobId - Job UUID
    */
   async list(jobId: string): Promise<Payment[]> {
-    const response = await this.http.get<ListResponse<Payment>>("/api/payments", {
+    const response = await this.http.get<any>("/api/payments", {
       jobId,
     });
-    return response.items;
+    return this.coerceList(response);
   }
 
   /**
@@ -55,6 +61,18 @@ export class PaymentsModule {
     return this.http.post<PaymentSettleResponse>("/api/payments/settle", {
       paymentId,
       paymentHeader,
+    });
+  }
+
+  /**
+   * Confirm on-chain escrow funding (contract mode)
+   * @param paymentId - Payment UUID
+   * @param txHash - On-chain transaction hash
+   */
+  async confirm(paymentId: string, txHash: string): Promise<PaymentConfirmResponse> {
+    return this.http.post<PaymentConfirmResponse>("/api/payments/confirm", {
+      paymentId,
+      txHash,
     });
   }
 

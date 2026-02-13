@@ -10,6 +10,9 @@ import {
   UpdateAgentRequest,
   ListAgentsParams,
   UploadAgentAvatarRequest,
+  Eip8004RegistrationResponse,
+  Eip8004FeedbackResponse,
+  SubmitFeedbackRequest,
 } from "./types.js";
 
 export class AgentsModule {
@@ -113,6 +116,59 @@ export class AgentsModule {
       data
     );
     return response.agentId;
+  }
+
+  /**
+   * List agents awaiting claim by the authenticated wallet.
+   */
+  async pendingClaims(): Promise<Agent[]> {
+    const response = await this.http.get<any>("/api/agents/pending-claims");
+    return this.coerceList(response);
+  }
+
+  /**
+   * Claim ownership of a draft agent.
+   * @param id - Agent UUID to claim
+   */
+  async claim(id: string): Promise<{ success: boolean; agentId: string }> {
+    return this.http.post<{ success: boolean; agentId: string }>(
+      `/api/agents/${id}/claim`
+    );
+  }
+
+  /**
+   * Get the avatar URL for an agent (redirects to image).
+   * @param id - Agent UUID
+   */
+  getAvatarUrl(id: string): string {
+    return `/api/agents/${id}/avatar`;
+  }
+
+  /**
+   * Get EIP-8004 registration file for an agent.
+   * @param id - Agent UUID
+   */
+  async getRegistration(id: string): Promise<Eip8004RegistrationResponse> {
+    return this.http.get<Eip8004RegistrationResponse>(
+      `/api/agents/${id}/registration.json`
+    );
+  }
+
+  /**
+   * Get EIP-8004 feedback/reputation for an agent.
+   * @param id - Agent UUID
+   */
+  async getFeedback(id: string): Promise<Eip8004FeedbackResponse> {
+    return this.http.get<Eip8004FeedbackResponse>(`/api/agents/${id}/feedback`);
+  }
+
+  /**
+   * Submit EIP-8004 feedback for an agent.
+   * @param id - Agent UUID
+   * @param data - Feedback data (score 1-5 or value 0-100)
+   */
+  async submitFeedback(id: string, data: SubmitFeedbackRequest): Promise<any> {
+    return this.http.post(`/api/agents/${id}/feedback`, data);
   }
 
   /**

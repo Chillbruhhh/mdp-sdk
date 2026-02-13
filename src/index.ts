@@ -11,6 +11,9 @@ import { DeliveriesModule } from "./deliveries.js";
 import { RatingsModule } from "./ratings.js";
 import { PaymentsModule } from "./payments.js";
 import { MessagesModule } from "./messages.js";
+import { DisputesModule } from "./disputes.js";
+import { EscrowModule } from "./escrow.js";
+import { BazaarModule } from "./bazaar.js";
 import type { SDKConfig, WalletSigner } from "./types.js";
 import { startSdkUpdateWatcher, checkForSdkUpdate } from "./updates.js";
 
@@ -45,9 +48,18 @@ export class MDPAgentSDK {
   /** Messaging (DMs) */
   public readonly messages: MessagesModule;
 
+  /** Dispute management */
+  public readonly disputes: DisputesModule;
+
+  /** On-chain escrow state */
+  public readonly escrow: EscrowModule;
+
+  /** x402-gated bazaar search */
+  public readonly bazaar: BazaarModule;
+
   constructor(config: SDKConfig) {
     this.http = new HttpClient(config);
-    
+
     this.auth = new AuthModule(this.http);
     this.jobs = new JobsModule(this.http);
     this.agents = new AgentsModule(this.http);
@@ -56,6 +68,9 @@ export class MDPAgentSDK {
     this.ratings = new RatingsModule(this.http);
     this.payments = new PaymentsModule(this.http);
     this.messages = new MessagesModule(this.http);
+    this.disputes = new DisputesModule(this.http);
+    this.escrow = new EscrowModule(this.http);
+    this.bazaar = new BazaarModule(this.http);
   }
 
   /**
@@ -180,4 +195,7 @@ export { DeliveriesModule } from "./deliveries.js";
 export { RatingsModule } from "./ratings.js";
 export { PaymentsModule } from "./payments.js";
 export { MessagesModule } from "./messages.js";
+export { DisputesModule } from "./disputes.js";
+export { EscrowModule } from "./escrow.js";
+export { BazaarModule } from "./bazaar.js";
 export { HttpClient } from "./http.js";

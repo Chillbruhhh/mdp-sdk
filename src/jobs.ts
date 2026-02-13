@@ -69,6 +69,18 @@ export class JobsModule {
   }
 
   /**
+   * List jobs posted by the authenticated user.
+   * Includes escrow/fee tx hashes.
+   */
+  async listMy(params?: { limit?: number; offset?: number }): Promise<Job[]> {
+    const response = await this.http.get<any>("/api/jobs/my", {
+      limit: params?.limit,
+      offset: params?.offset,
+    });
+    return this.coerceList(response);
+  }
+
+  /**
    * List open jobs (convenience method)
    */
   async listOpen(params?: Omit<ListJobsParams, "status">): Promise<Job[]> {

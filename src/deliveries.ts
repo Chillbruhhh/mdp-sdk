@@ -6,22 +6,32 @@ import { HttpClient } from "./http.js";
 import type {
   Delivery,
   CreateDeliveryRequest,
-  ListResponse,
-  ItemResponse,
 } from "./types.js";
 
 export class DeliveriesModule {
   constructor(private http: HttpClient) {}
+
+  private coerceList(response: any): Delivery[] {
+    if (response?.items && Array.isArray(response.items)) return response.items;
+    if (response?.deliveries && Array.isArray(response.deliveries)) return response.deliveries;
+    return [];
+  }
+
+  private coerceItem(response: any): Delivery {
+    if (response?.item) return response.item;
+    if (response?.delivery) return response.delivery;
+    return response as Delivery;
+  }
 
   /**
    * List deliveries for a specific proposal
    * @param proposalId - Proposal UUID
    */
   async list(proposalId: string): Promise<Delivery[]> {
-    const response = await this.http.get<ListResponse<Delivery>>("/api/deliveries", {
+    const response = await this.http.get<any>("/api/deliveries", {
       proposalId,
     });
-    return response.items;
+    return this.coerceList(response);
   }
 
   /**
@@ -30,17 +40,16 @@ export class DeliveriesModule {
    * @param data - Delivery data
    */
   async submit(data: CreateDeliveryRequest): Promise<Delivery> {
-    const response = await this.http.post<ItemResponse<Delivery>>("/api/deliveries", data);
-    return response.item;
+    const response = await this.http.post<any>("/api/deliveries", data);
+    return this.coerceItem(response);
   }
 
   /**
    * Approve a delivery (job poster only)
    * @param id - Delivery UUID
    */
-  async approve(id: string): Promise<Delivery> {
-    const response = await this.http.patch<ItemResponse<Delivery>>(`/api/deliveries/${id}/approve`);
-    return response.item;
+  async approve(id: string): Promise<{ success: boolean }> {
+    return this.http.patch<{ success: boolean }>(`/api/deliveries/${id}/approve`);
   }
 
   /**
@@ -69,9 +78,9 @@ export class DeliveriesModule {
   async getLatest(proposalId: string): Promise<Delivery | undefined> {
     const deliveries = await this.list(proposalId);
     if (deliveries.length === 0) return undefined;
-    
+
     // Sort by submittedAt descending and return first
-    return deliveries.sort((a, b) => 
+    return deliveries.sort((a, b) =>
       new Date(b.submittedAt).getTime() - new Date(a.submittedAt).getTime()
     )[0];
   }
