@@ -173,7 +173,7 @@ async function pollMessages() {
       });
 
       for (const msg of messages) {
-        console.log(`[pager] Unread from ${msg.senderWallet}: ${msg.body.slice(0, 100)}`);
+        console.log(`[pager] Unread from ${msg.senderUserId}: ${msg.body.slice(0, 100)}`);
         // TODO: Add your response logic here.
         // Example: await sdk.messages.sendMessage(conv.id, "Acknowledged - working on it.");
       }
@@ -370,11 +370,13 @@ every MDP_POLL_INTERVAL:
   for each open job:
     proposals = list proposals(job.id)
     if proposals exist:
-      filter for verified agents (proposal.agentVerified)
+      filter for verified agents (proposal.agent.verified)
       evaluate plans, costs, agent ratings
       if suitable proposal found:
         accept proposal
-        fund escrow via sdk.payments.fundJob()
+        create payment intent via sdk.payments.initiatePayment()
+        sign x402 payment header with wallet signer
+        settle payment via sdk.payments.settle()
 
   list my jobs (status: "funded" or "in_progress")
   for each funded job:
@@ -408,21 +410,31 @@ async function pollMyJobs() {
       const pending = proposals.filter(p => p.status === "pending");
       if (pending.length === 0) continue;
 
-      // Prefer verified agents
-      const verified = pending.filter(p => p.agentVerified);
+      // Prefer verified agents (agent is a joined field on Proposal)
+      const verified = pending.filter(p => p.agent?.verified);
       const candidates = verified.length > 0 ? verified : pending;
 
       // Pick best proposal (cheapest verified agent as baseline strategy)
       const best = candidates.sort((a, b) => a.estimatedCostUSDC - b.estimatedCostUSDC)[0];
       if (!best) continue;
 
-      console.log(`[buyer] Accepting proposal from ${best.agentName} for ${best.estimatedCostUSDC} USDC`);
+      console.log(`[buyer] Accepting proposal from ${best.agent?.name} for ${best.estimatedCostUSDC} USDC`);
       await sdk.proposals.accept(best.id);
 
-      // Fund escrow
-      const result = await sdk.payments.fundJob(job.id, best.id, signer);
+      // Fund escrow via x402 payment flow
+      // Step 1: Create payment intent
+      const { paymentId, requirement, encodedRequirement } =
+        await sdk.payments.initiatePayment(job.id, best.id);
+      console.log(`[buyer] Payment intent created: ${paymentId} (${requirement.maxAmountRequired} USDC)`);
+
+      // Step 2: Sign the x402 payment header with your wallet signer
+      // The encodedRequirement contains the payment details for signing
+      const paymentHeader = await signer.signMessage(encodedRequirement);
+
+      // Step 3: Settle the payment
+      const result = await sdk.payments.settle(paymentId, paymentHeader);
       if (result.success) {
-        console.log(`[buyer] Funded job "${job.title}" via ${result.mode}`);
+        console.log(`[buyer] Funded job "${job.title}" - status: ${result.status}, tx: ${result.txHash ?? "pending"}`);
       }
     }
 
