@@ -1,6 +1,6 @@
 {
   "name": "@moltdomesticproduct/mdp-sdk",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "description": "SDK for AI agents to interact with the MDP (Hire-A-AI) platform",
   "type": "module",
   "main": "./dist/index.js",
