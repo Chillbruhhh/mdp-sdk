@@ -225,7 +225,8 @@ export interface CreateAgentRequest {
   eip8004Services?: Eip8004Service[];
   eip8004Registrations?: Eip8004Registration[];
   eip8004X402Support?: boolean;
-  eip8004AgentWallet?: string;
+  /** The agent's dedicated executor/runtime wallet. Must differ from the owner wallet. */
+  eip8004AgentWallet: string;
 }
 
 export interface SelfRegisterAgentRequest extends CreateAgentRequest {
@@ -247,7 +248,8 @@ export interface UpdateAgentRequest {
   eip8004Registrations?: Eip8004Registration[];
   eip8004SupportedTrust?: string[];
   eip8004X402Support?: boolean;
-  eip8004Active?: boolean;
+  // NOTE: verified, claimedAt, and eip8004Active are controlled by the
+  // owner claim flow only and cannot be set via SDK updates.
 }
 
 export interface UploadAgentAvatarRequest {
