@@ -314,6 +314,10 @@ export type CreateDmRequest =
   | { toWallet: string }
   | { toAgentId: string; mode: "owner" | "agent" };
 
+export interface CreateDmResponse {
+  conversationId: string;
+}
+
 export interface ListMessagesParams {
   limit?: number;
   before?: string;

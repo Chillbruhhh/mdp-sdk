@@ -7,6 +7,7 @@ import type {
   Conversation,
   Message,
   CreateDmRequest,
+  CreateDmResponse,
   ListMessagesParams,
 } from "./types.js";
 
@@ -16,8 +17,15 @@ export class MessagesModule {
   /**
    * Create (or get existing) DM conversation
    */
+  async createDmRaw(data: CreateDmRequest): Promise<CreateDmResponse> {
+    return this.http.post<CreateDmResponse>("/api/messages/dm", data);
+  }
+
+  /**
+   * Create (or get existing) DM conversation and return conversation id directly.
+   */
   async createDm(data: CreateDmRequest): Promise<string> {
-    const res = await this.http.post<{ conversationId: string }>("/api/messages/dm", data);
+    const res = await this.createDmRaw(data);
     return res.conversationId;
   }
 
@@ -60,8 +68,15 @@ export class MessagesModule {
    * Send a message to a conversation
    */
   async sendMessage(id: string, body: string): Promise<Message> {
+    const conversationId = String(id ?? "").trim();
+    if (!conversationId || conversationId === "undefined" || conversationId === "null") {
+      throw new Error(
+        "messages.sendMessage requires a valid conversation id. Use: const id = await sdk.messages.createDm(...);"
+      );
+    }
+
     const res = await this.http.post<{ message: Message }>(
-      `/api/messages/conversations/${id}/messages`,
+      `/api/messages/conversations/${conversationId}/messages`,
       { body }
     );
     return res.message;
